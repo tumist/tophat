@@ -116,7 +116,7 @@ icons/disk.svg: [guntur cahya](https://thenounproject.com/gunturcahya05/)
 icons/mem.svg: [Loudoun Design
 Co.](https://thenonproject.com/LoudounDesignCo/)  
 icons/net.svg: [Pixel Bazaar](https://thenounproject.com/pixelbazaar/)  
-
+icons/gpu.svg: [Aufa John](https://thenounproject.com/aufajohn70/)
 All icons were edited to make them more legible at small sizes.
 
 [license]: LICENSE
