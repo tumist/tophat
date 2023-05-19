@@ -68,6 +68,7 @@ function fillPreferencesWindow(window) {
     choices.append(_('Numeric value'));
     choices.append(_('Both meter and value'));
     addComboRow(_('Show as'), choices, 'memDisplay', group, configHandler);
+    addActionRow(_('Show swap meter'), 'show-mem-swap', group, configHandler);
     page.add(group);
 
     group = new Adw.PreferencesGroup({title: _('Disk')});
@@ -204,6 +205,7 @@ function buildPrefsWidget3() {
     choices.push(_('Numeric value'));
     choices.push(_('Both meter and value'));
     addPref3(buildDropDown3('memDisplay', _('Show as'), choices, configHandler), group);
+    addPref3(buildSwitch3('show-mem-swap', _('Show swap meter'), configHandler.settings), group);
     frame.add(group);
 
     group = new Gtk.Box({
@@ -358,6 +360,7 @@ function buildPrefsWidget4() {
     choices.append(_('Numeric value'));
     choices.append(_('Both meter and value'));
     addPref4(buildDropDown4('memDisplay', _('Show as'), choices, configHandler), group);
+    addPref4(buildSwitch4('show-mem-swap', _('Show swap meter'), configHandler.settings), group);
     frame.append(group);
 
     group = new Gtk.Box({

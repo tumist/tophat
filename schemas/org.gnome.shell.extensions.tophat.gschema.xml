@@ -63,6 +63,11 @@
       <summary>Show the memory monitor</summary>
       <description>Show the memory monitor.</description>
     </key>
+    <key name="show-mem-swap" type="b">
+      <default>false</default>
+      <summary>Show swap in the memory monitor</summary>
+      <description>Show swap usage the memory monitor.</description>
+    </key>
     <key name="show-net" type="b">
       <default>true</default>
       <summary>Show the network monitor</summary>
