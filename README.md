@@ -35,12 +35,12 @@ The latest release of TopHat has been tested on the following systems:
 - Arch Linux
 - CentOS Stream 8
 - CentOS Stream 9
-- Debian 11.6 (first install gir1.2-gtop-2.0 package)
-- Fedora 37
+- Debian 11.7 (first install gir1.2-gtop-2.0 package)
+- Fedora 38
 - openSUSE Leap 15.4 (first install typelib-1_0-GTop-2_0 package)
 - Pop!_OS 22.04 LTS (first install gir1.2-gtop-2.0 package)
 - Ubuntu 22.04 LTS (first install gir1.2-gtop-2.0 package)
-- Ubuntu 22.10 (first install gir1.2-gtop-2.0 package)
+- Ubuntu 23.04 (first install gir1.2-gtop-2.0 package)
 
 Even if your system is not in this list, as long as it meets the
 requirements mentioned above, you should be able to run TopHat. If not, please
@@ -89,7 +89,7 @@ To simulate heavy system load, use the `stress-ng` tool, e.g. `stress-ng
 To test the development version:
 
     mkdir -p ~/.local/share/gnome-shell/extensions/
-    ln -s [path to tophat repository] ~/.local/share/gnome-shell/extensions/tophat@fflewddur.github.io
+    ln -s [path to tophat repository]/tophat@fflewddur.github.io ~/.local/share/gnome-shell/extensions/tophat@fflewddur.github.io
 
 ## License
 

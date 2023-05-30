@@ -27,6 +27,7 @@ const Shared = Me.imports.lib.shared;
 const Monitor = Me.imports.lib.monitor;
 const FileModule = Me.imports.lib.file;
 const _ = Config.Domain.gettext;
+const ngettext = Config.Domain.ngettext;
 
 class CPUUse {
     constructor(user = 0, sys = 0) {
@@ -132,6 +133,7 @@ var CpuMonitor = GObject.registerClass({
         this.add_child(this.usage);
 
         configHandler.settings.bind('show-cpu', this, 'visible', Gio.SettingsBindFlags.GET);
+        configHandler.settings.bind('refresh-rate', this, 'refresh-rate', Gio.SettingsBindFlags.GET);
         configHandler.settings.bind('show-icons', this.icon, 'visible', Gio.SettingsBindFlags.GET);
         configHandler.settings.bind('meter-bar-width', this, 'meter-bar-width', Gio.SettingsBindFlags.GET);
         configHandler.settings.bind('meter-fg-color', this, 'meter-fg-color', Gio.SettingsBindFlags.GET);
@@ -145,6 +147,11 @@ var CpuMonitor = GObject.registerClass({
             } else {
                 this._stopTimers();
             }
+        });
+        this._signals.push(id);
+        id = this.connect('notify::refresh-rate', () => {
+            this._stopTimers();
+            this._startTimers();
         });
         this._signals.push(id);
 
@@ -170,14 +177,24 @@ var CpuMonitor = GObject.registerClass({
     }
 
     _startTimers() {
-        // Clear the history chart
+        // Clear the history chart and configure it for the current refresh rate
         this.history = [];
+        let updateInterval = this.computeSummaryUpdateInterval(Config.UPDATE_INTERVAL_CPU);
+        this.historyLimit = Config.HISTORY_MAX_SIZE * 1000 / updateInterval;
 
         if (this.refreshChartsTimer === 0) {
-            this.refreshChartsTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Config.UPDATE_INTERVAL_CPU, () => this._refreshCharts());
+            this.refreshChartsTimer = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                updateInterval,
+                () => this._refreshCharts()
+            );
         }
         if (this.refreshProcessesTimer === 0) {
-            this.refreshProcessesTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Config.UPDATE_INTERVAL_PROCLIST, () => this._refreshProcesses());
+            this.refreshProcessesTimer = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                this.computeDetailsUpdateInterval(Config.UPDATE_INTERVAL_PROCLIST),
+                () => this._refreshProcesses()
+            );
         }
     }
 
@@ -217,8 +234,9 @@ var CpuMonitor = GObject.registerClass({
         this.historyChart.connect('repaint', () => this._repaintHistory());
         this.addMenuRow(this.historyChart, 0, 2, 1);
 
-        // FIXME: Don't hardcode this, base it on Config.HISTORY_MAX_SIZE
-        label = new St.Label({text: _('2 mins ago'), style_class: 'chart-label-then'});
+        let limitInMins = Config.HISTORY_MAX_SIZE / 60;
+        let startLabel = ngettext('%d min ago', '%d mins ago', limitInMins).format(limitInMins);
+        label = new St.Label({text: startLabel, style_class: 'chart-label-then'});
         this.addMenuRow(label, 0, 1, 1);
         label = new St.Label({text: _('now'), style_class: 'chart-label-now'});
         this.addMenuRow(label, 1, 1, 1);
@@ -230,11 +248,20 @@ var CpuMonitor = GObject.registerClass({
         for (let i = 0; i < Config.N_TOP_PROCESSES; i++) {
             let cmd = new St.Label({text: '', style_class: 'menu-cmd-name'});
             this.addMenuRow(cmd, 0, 1, 1);
-            let usage = new St.Label({text: '', style_class: 'menu-cmd-usage'});
+            let style = 'menu-cmd-usage';
+            if (i === Config.N_TOP_PROCESSES - 1) {
+                style = 'menu-cmd-usage menu-section-end';
+            }
+            let usage = new St.Label({text: '', style_class: style});
             this.addMenuRow(usage, 1, 1, 1);
             let p = new Shared.TopProcess(cmd, usage);
             this.topProcesses.push(p);
         }
+
+        label = new St.Label({text: _('System uptime'), style_class: 'menu-header'});
+        this.addMenuRow(label, 0, 2, 1);
+        this.menuUptime = new St.Label({text: '', style_class: 'menu-uptime menu-section-end'});
+        this.addMenuRow(this.menuUptime, 0, 2, 1);
 
         this.buildMenuButtons();
     }
@@ -389,7 +416,7 @@ var CpuMonitor = GObject.registerClass({
             this.cpuPrev.xcpu_idle[i] = this.cpu.xcpu_idle[i];
             this.cpuPrev.xcpu_total[i] = this.cpu.xcpu_total[i];
         }
-        while (this.history.length >= Config.HISTORY_MAX_SIZE) {
+        while (this.history.length >= this.historyLimit) {
             this.history.shift();
         }
         this.history.push(this.cpuUsage.copy());
@@ -537,13 +564,34 @@ var CpuMonitor = GObject.registerClass({
             this._readCPUTemps();
         }
 
+        // Also get the system's uptime
+        this._readSystemUptime();
+
         return true;
+    }
+
+    _readSystemUptime() {
+        let uptime = new GTop.glibtop_uptime();
+        GTop.glibtop_get_uptime(uptime);
+        let days = 0, hours = 0, mins = 0;
+        mins = Math.floor((uptime.uptime % 3600) / 60);
+        hours = Math.floor((uptime.uptime % 86400) / 3600);
+        days = Math.floor(uptime.uptime / 86400);
+        let parts = [];
+        if (days > 0) {
+            parts.push(ngettext('%d day', '%d days', days).format(days));
+        }
+        if (days > 0 || hours > 0) {
+            parts.push(ngettext('%d hour', '%d hours', hours).format(hours));
+        }
+        parts.push(ngettext('%d minute', '%d minutes', mins).format(mins));
+        this.menuUptime.text = parts.join(' ');
     }
 
     _repaintHistory() {
         let [width, height] = this.historyChart.get_surface_size();
-        let pointSpacing = width / (Config.HISTORY_MAX_SIZE - 1);
-        let xStart = (Config.HISTORY_MAX_SIZE - this.history.length) * pointSpacing;
+        let pointSpacing = width / (this.historyLimit - 1);
+        let xStart = (this.historyLimit - this.history.length) * pointSpacing;
         let ctx = this.historyChart.get_context();
         var fg, bg;
         [, fg] = Clutter.Color.from_string(this.meter_fg_color);
@@ -571,11 +619,13 @@ var CpuMonitor = GObject.registerClass({
     destroy() {
         this._stopTimers();
         Gio.Settings.unbind(this, 'visible');
+        Gio.Settings.unbind(this, 'refresh-rate');
         Gio.Settings.unbind(this.icon, 'visible');
         Gio.Settings.unbind(this, 'meter-fg-color');
         Gio.Settings.unbind(this, 'meter-bar-width');
         Gio.Settings.unbind(this, 'show-cores');
         Gio.Settings.unbind(this, 'show-animation');
+        Gio.Settings.unbind(this, 'visualization');
         super.destroy();
     }
 });

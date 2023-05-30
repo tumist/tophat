@@ -3,9 +3,10 @@
 All notable changes to [TopHat] are listed in this file. The format is loosely
 based on [Keep a Changelog].
 
-## Not yet released
+## TopHat 10 - May 29, 2023
 
-- Added option to display numeric value instead of (or in addition to) usage meters
+- Added option to adjust refresh speed
+- Added option to display numeric values instead of (or in addition to) usage meters
 - Fixed panel icons to follow system theme (from [@hrqmonteiro](https://github.com/hrqmonteiro))
 - Added Czech translation (from [@Amereyeu](https://github.com/Amereyeu))
 - Updated Turkish translation (from [@nxjosephofficial](https://github.com/nxjosephofficial))
