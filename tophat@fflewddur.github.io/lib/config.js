@@ -26,6 +26,7 @@ var UPDATE_INTERVAL_DISK = 5000;
 var UPDATE_INTERVAL_PROCLIST = 5000;
 
 var METER_BG_COLOR = '#00000033';
+var METER_GRID_COLOR = '#77777766';
 
 var HISTORY_MAX_SIZE = 300; // The time-series graphs will show data for this many seconds
 
@@ -176,6 +177,14 @@ var ConfigHandler = class ConfigHandler {
             }
             this._settings.set_string('mount-to-monitor', value);
         }
+    }
+
+    get diskMonitorMode() {
+        return this._settings.get_enum('disk-monitor-mode');
+    }
+
+    set diskMonitorMode(value) {
+        this._settings.set_enum('disk-monitor-mode', value);
     }
 
     destroy() {
