@@ -484,6 +484,7 @@ var CpuMonitor = GObject.registerClass({
                 if ((values = block.match(/cpu MHz\s*:\s*(\d+)/))) {
                     freq = parseInt(values[1]);
                     info.freq += freq;
+                    info.maxFreq = Math.max(info.maxFreq || 0, freq);
                 }
                 if ((values = block.match(/model name\s*:\s*(.+)\n/))) {
                     model = values[1];
@@ -498,7 +499,7 @@ var CpuMonitor = GObject.registerClass({
                         this.menuCpuModels[info.id].text = info.model;
                     }
                     if (this.menuCpuFreqs[info.id] !== undefined) {
-                        this.menuCpuFreqs[info.id].text = `${(info.freq / info.cores / 1000).toFixed(1)} GHz`;
+                        this.menuCpuFreqs[info.id].text = `${(info.maxFreq / 1000 )} GHz / ${(info.freq / info.cores / 1000).toFixed(1)} GHz`;
                     }
                 });
             }
