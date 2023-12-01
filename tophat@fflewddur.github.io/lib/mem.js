@@ -17,22 +17,19 @@
 // You should have received a copy of the GNU General Public License
 // along with TopHat. If not, see <https://www.gnu.org/licenses/>.
 
-/* exported MemMonitor */
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import GTop from 'gi://GTop';
+import St from 'gi://St';
 
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
-const GTop = imports.gi.GTop;
-const Clutter = imports.gi.Clutter;
-const St = imports.gi.St;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Config = Me.imports.lib.config;
-const Shared = Me.imports.lib.shared;
-const Monitor = Me.imports.lib.monitor;
-const FileModule = Me.imports.lib.file;
-const _ = Config.Domain.gettext;
-const ngettext = Config.Domain.ngettext;
+import {gettext as _, ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import * as Config from './config.js';
+import * as Shared from './shared.js';
+import * as Monitor from './monitor.js';
+import * as FileModule from './file.js';
 
 const KB_PER_GB = 1000000; // https://en.wikipedia.org/wiki/Gigabyte
 
@@ -138,7 +135,7 @@ class ProcessMemUse {
     }
 }
 
-var MemMonitor = GObject.registerClass({
+export const MemMonitor = GObject.registerClass({
     Properties: {
         'show-mem-swap': GObject.ParamSpec.boolean(
             'show-mem-swap',
@@ -150,7 +147,7 @@ var MemMonitor = GObject.registerClass({
     },
 },  class TopHatMemMonitor extends Monitor.TopHatMonitor {
         _init(configHandler) {
-            super._init(`${Me.metadata.name} Memory Monitor`);
+            super._init('[TopHat] Memory Monitor');
 
             // Initialize libgtop values
             this.mem = new GTop.glibtop_mem();
@@ -163,7 +160,7 @@ var MemMonitor = GObject.registerClass({
             this.refreshChartsTimer = 0;
             this.refreshProcessesTimer = 0;
 
-            let gicon = Gio.icon_new_for_string(`${Me.path}/icons/mem-icon-symbolic.svg`);
+            let gicon = Gio.icon_new_for_string(`${configHandler.metadata.path}/icons/mem-icon-symbolic.svg`);
             this.icon = new St.Icon({gicon, style_class: 'system-status-icon tophat-panel-icon'});
             this.add_child(this.icon);
 
@@ -340,7 +337,7 @@ var MemMonitor = GObject.registerClass({
             this.historyChart.queue_repaint();
 
             // Update panel meter
-            // log(`setUsage(${this.memUsage.mem} * 100)`);
+            // console.debug(`setUsage(${this.memUsage.mem} * 100)`);
             if (this.show_mem_swap) {
                 this.meter.setUsage([this.memUsage.mem * 100, this.memUsage.swap * 100]);
             } else {
@@ -381,7 +378,7 @@ var MemMonitor = GObject.registerClass({
                 this.menuSwapUsage.text = `${(this.memUsage.swap * 100).toFixed(0)}%`;
                 this.menuSwapSize.text = `${(this.memUsage.swapUsed / KB_PER_GB).toFixed(1)} GB of ${(this.memUsage.swapSize / KB_PER_GB).toFixed(1)} GB`;
             }).catch(err => {
-                log(`[${Me.metadata.name}] Error reading /proc/meminfo: ${err}`);
+                console.error(`[TopHat] Error reading /proc/meminfo: ${err}`);
                 this.hasProc = false;
             });
         }
@@ -438,7 +435,7 @@ var MemMonitor = GObject.registerClass({
             let pointSpacing = width / (this.historyLimit - 1);
             let xStart = (this.historyLimit - this.history.length) * pointSpacing;
             let ctx = this.historyChart.get_context();
-            var fg, bg;
+            let fg, bg;
             [, fg] = Clutter.Color.from_string(this.meter_fg_color);
             [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
 

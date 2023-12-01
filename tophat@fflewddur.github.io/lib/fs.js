@@ -17,16 +17,18 @@
 // You should have received a copy of the GNU General Public License
 // along with TopHat. If not, see <https://www.gnu.org/licenses/>.
 
-/* exported FileSystemMonitor */
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import GTop from 'gi://GTop';
+import St from 'gi://St';
 
-const {Clutter, Gio, GLib, GObject, GTop, St} = imports.gi;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Config = Me.imports.lib.config;
-const Shared = Me.imports.lib.shared;
-const Monitor = Me.imports.lib.monitor;
-const _ = Config.Domain.gettext;
-const ngettext = Config.Domain.ngettext;
+import * as Config from './config.js';
+import * as Shared from './shared.js';
+import * as Monitor from './monitor.js';
+
+import {gettext as _, ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 class DiskActivity {
     constructor(read = 0, write = 0) {
@@ -95,7 +97,7 @@ class FSUsage {
     }
 }
 
-var FileSystemMonitor = GObject.registerClass({
+export const FileSystemMonitor = GObject.registerClass({
     Properties: {
         'mount': GObject.ParamSpec.string(
             'mount',
@@ -114,9 +116,9 @@ var FileSystemMonitor = GObject.registerClass({
     },
 }, class TopHatFileSystemMonitor extends Monitor.TopHatMonitor {
     _init(configHandler) {
-        super._init(`${Me.metadata.name} FS Monitor`);
+        super._init('TopHat FS Monitor');
 
-        let gicon = Gio.icon_new_for_string(`${Me.path}/icons/disk-icon-symbolic.svg`);
+        let gicon = Gio.icon_new_for_string(`${configHandler.metadata.path}/icons/disk-icon-symbolic.svg`);
         this.icon = new St.Icon({gicon, style_class: 'system-status-icon tophat-panel-icon'});
         this.add_child(this.icon);
 
@@ -493,7 +495,7 @@ var FileSystemMonitor = GObject.registerClass({
         let pointSpacing = width / (this.historyLimit - 1);
         let xStart = (this.historyLimit - this.history.length) * pointSpacing;
         let ctx = this.historyChart.get_context();
-        var fg, bg, gc;
+        let fg, bg, gc;
         [, fg] = Clutter.Color.from_string(this.meter_fg_color);
         [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
         [, gc] = Clutter.Color.from_string(Config.METER_GRID_COLOR);
