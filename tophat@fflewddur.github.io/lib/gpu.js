@@ -17,22 +17,24 @@
 // You should have received a copy of the GNU General Public License
 // along with TopHat. If not, see <https://www.gnu.org/licenses/>.
 
-/* exported GpuMonitor */
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
 
-const {Clutter, Gio, GLib, GObject, GTop, St} = imports.gi;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Monitor = Me.imports.lib.monitor;
-const Config = Me.imports.lib.config;
-const FileModule = Me.imports.lib.file;
-const _ = Config.Domain.gettext;
+import * as Config from './config.js';
+import * as Monitor from './monitor.js';
+import * as FileModule from './file.js';
 
-var GpuMonitor = GObject.registerClass(
+import {gettext as _, ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+export const GpuMonitor = GObject.registerClass(
     class GpuMonitor extends Monitor.TopHatMonitor {
         _init(configHandler) {
-            super._init(`${Me.metadata.name} GPU Monitor`);
+            super._init('Tophat GPU Monitor');
 
-            let gicon = Gio.icon_new_for_string(`${Me.path}/icons/gpu-icon-symbolic.svg`);
+            let gicon = Gio.icon_new_for_string(`${configHandler.metadata.path}/icons/gpu-icon-symbolic.svg`);
             this.icon = new St.Icon({gicon, style_class: 'system-status-icon tophat-panel-icon'});
             this.add_child(this.icon);
 
