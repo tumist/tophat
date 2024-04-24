@@ -2,8 +2,8 @@
     "uuid": "tophat@tum.is",
     "name": "TopHat",
     "description": "View CPU, memory, disk, and network activity in the GNOME top bar.",
-    "version": 13,
-    "shell-version": [ "45" ],
+    "version": 14,
+    "shell-version": [ "45", "46" ],
     "url": "https://github.com/tumist/tophat",
     "gettext-domain": "tophat@tumist.github.io",
     "settings-schema": "org.gnome.shell.extensions.tophat"
