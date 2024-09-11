@@ -69,15 +69,15 @@ class ProcessCPUUse {
         return this.cpuTimeNow - this.cpuTimePrev;
     }
 
-    cpuUsage() {
-        if (this.freq === 0) {
+    cpuUsage(updateInterval) {
+        if (this.freq === 0 || updateInterval === 0) {
             return 0;
         }
-        return this.cpuTime() / this.freq * Shared.SECOND_AS_MILLISECONDS / Config.UPDATE_INTERVAL_PROCLIST;
+        return this.cpuTime() / this.freq * Shared.SECOND_AS_MILLISECONDS / updateInterval;
     }
 
     toString() {
-        return `use: ${this.cpuUsage()} cmd: ${this.cmd} pid: ${this.pid}`;
+        return `time: ${this.cpuTime} cmd: ${this.cmd} pid: ${this.pid}`;
     }
 }
 
@@ -564,7 +564,7 @@ export const CpuMonitor = GObject.registerClass({
             this.topProcesses[i].cmd.text = procList[i].cmd;
             let cpuUse = '';
             if (procList[i].cmd) {
-                cpuUse = procList[i].cpuUsage() * 100 / this.cpuCores;
+                cpuUse = procList[i].cpuUsage(this.computeDetailsUpdateInterval(Config.UPDATE_INTERVAL_PROCLIST)) * 100 / this.cpuCores;
                 if (cpuUse < 1) {
                     cpuUse = '< 1';
                     // cpuUse = cpuUse.toFixed(2);
