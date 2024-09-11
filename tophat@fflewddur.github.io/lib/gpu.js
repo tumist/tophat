@@ -46,6 +46,7 @@ export const GpuMonitor = GObject.registerClass(
             });
             this.add_child(this.usage);
 
+            configHandler.settings.bind('show-gpu', this, 'visible', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('meter-fg-color', this, 'meter-fg-color', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('meter-bar-width', this, 'meter-bar-width', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('show-animations', this, 'show-animation', Gio.SettingsBindFlags.GET);

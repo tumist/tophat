@@ -83,6 +83,11 @@
       <summary>Show the network monitor</summary>
       <description>Show the network monitor.</description>
     </key>
+    <key name="show-gpu" type="b">
+      <default>false</default>
+      <summary>Show the GPU monitor</summary>
+      <description>Show the GPU monitor.</description>
+    </key>
     <key name="show-animations" type="b">
       <default>true</default>
       <summary>Animate monitor changes</summary>

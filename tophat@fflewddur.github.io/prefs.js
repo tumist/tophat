@@ -101,6 +101,10 @@ export default class TopHatPrefs extends ExtensionPreferences {
         this.addComboRow(_('Measurement unit'), choices, 'networkUnit', group, configHandler);
         page.add(group);
 
+        group = new Adw.PreferencesGroup({title: _('GPU')});
+        this.addActionRow(_('Show the GPU monitor'), 'show-gpu', group, configHandler);
+        page.add(group);
+
         window.set_default_size(400, 0);
     }
 
