@@ -564,7 +564,7 @@ export const CpuMonitor = GObject.registerClass({
             this.topProcesses[i].cmd.text = procList[i].cmd;
             let cpuUse = '';
             if (procList[i].cmd) {
-                cpuUse = procList[i].cpuUsage(this.computeDetailsUpdateInterval(Config.UPDATE_INTERVAL_PROCLIST)) * 100 / this.cpuCores;
+                cpuUse = procList[i].cpuUsage(this.computeDetailsUpdateInterval(Config.UPDATE_INTERVAL_PROCLIST)) * 100;
                 if (cpuUse < 1) {
                     cpuUse = '< 1';
                     // cpuUse = cpuUse.toFixed(2);
