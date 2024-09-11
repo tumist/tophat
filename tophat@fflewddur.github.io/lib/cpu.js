@@ -501,7 +501,7 @@ export const CpuMonitor = GObject.registerClass({
                         this.menuCpuModels[info.id].text = info.model;
                     }
                     if (this.menuCpuFreqs[info.id] !== undefined) {
-                        this.menuCpuFreqs[info.id].text = `${(info.maxFreq / 1000 )} GHz / ${(info.freq / info.cores / 1000).toFixed(1)} GHz`;
+                        this.menuCpuFreqs[info.id].text = `${(info.maxFreq / 1000 ).toFixed(1)} GHz max\n${(info.freq / info.cores / 1000).toFixed(1)} GHz avg`;
                     }
                 });
             }
