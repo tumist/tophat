@@ -24,6 +24,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import * as Config from './config.js';
+import * as Shared from './shared.js';
 import * as Monitor from './monitor.js';
 import * as FileModule from './file.js';
 
@@ -115,10 +116,10 @@ export const GpuMonitor = GObject.registerClass(
             let currentGpuUsage = 0;
             let currentGpuMemUsage = 0;
             currentGpuUsage = parseInt(
-                new FileModule.File('/sys/class/drm/card0/device/gpu_busy_percent').readSync()
+                new FileModule.File('/sys/class/drm/card1/device/gpu_busy_percent').readSync()
             );
             currentGpuMemUsage = parseInt(
-                new FileModule.File('/sys/class/drm/card0/device/mem_busy_percent').readSync()
+                new FileModule.File('/sys/class/drm/card1/device/mem_busy_percent').readSync()
             );
 
             this.meter.setUsage([currentGpuUsage, currentGpuMemUsage]);
@@ -145,11 +146,11 @@ export const GpuMonitor = GObject.registerClass(
             [, fg] = Clutter.Color.from_string(this.meter_fg_color);
             [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
     
-            Clutter.cairo_set_source_color(ctx, bg);
+            Shared.setSourceColor(ctx, bg);
             ctx.rectangle(0, 0, width, height);
             ctx.fill();
     
-            Clutter.cairo_set_source_color(ctx, fg);
+            Shared.setSourceColor(ctx, fg);
             ctx.moveTo(xStart, height);
             for (let i = 0; i < this.history.length; i++) {
                 let pointHeight = Math.ceil(this.history[i] * height / 100);
