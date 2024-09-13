@@ -60,7 +60,7 @@ export const GpuMonitor = GObject.registerClass({
             configHandler.settings.bind('show-animations', this, 'show-animation', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('gpu-device', this, 'gpu-device', Gio.SettingsBindFlags.GET);
 
-            this._setGpuDevice()
+            this._setDevice()
 
             this.history = new Array(0);
             this.refreshTimer = 0;
@@ -75,7 +75,7 @@ export const GpuMonitor = GObject.registerClass({
             this._signals.push(id);
             id = this.connect('notify::gpu-device', () => {
                 this._stopTimers();
-                this._setGpuDevice();
+                this._setDevice();
                 this._startTimers();
             });
             this._signals.push(id);
@@ -85,17 +85,20 @@ export const GpuMonitor = GObject.registerClass({
             this._startTimers();
         }
 
-        _setGpuDevice() {
-            console.log("GPU monitor setting gpuDevice from key " + this.gpu_device);
+        _setDevice() {
+            console.log("GPU monitor setting _device from key " + this.gpu_device);
             Shared.findGpuDevices().then(devices => {
                 let device = devices.get(this.gpu_device)
                 if(device !== undefined) {
-                    this.gpuDevice = device;
+                    this._device = device;
                     console.log("GPU monitor set to " + device)
                 } else {
-                    console.log("GPU monitor could not find device from key " + this.gpu-device);
+                    console.log("GPU monitor could not find device from key " + this.gpu_device);
+                    this._device = devices.values().next().value;
                 }
-            })
+            }).catch(err => {
+                console.log("_setDevice: findGpuDevices() promise failed: " + err);
+            });
         }
 
         _buildMeter() {
@@ -144,10 +147,10 @@ export const GpuMonitor = GObject.registerClass({
         }
 
         _refreshCharts() {
-            if(this.gpuDevice == undefined || this.gpuDevice.getUsage == undefined)
+            if(this._device == undefined || this._device.getUsage == undefined)
                 return;
-            let currentGpuUsage = this.gpuDevice.getUsage();
-            let currentGpuMemUsage = this.gpuDevice.getMemUsage();
+            let currentGpuUsage = parseInt(this._device.getUsage());
+            let currentGpuMemUsage = parseInt(this._device.getMemUsage());
 
             this.meter.setUsage([currentGpuUsage, currentGpuMemUsage]);
             this.usage.text = `${currentGpuUsage}%`;

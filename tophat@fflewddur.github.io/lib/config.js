@@ -182,21 +182,12 @@ export class ConfigHandler {
     }
 
     get gpuDevice() {
-        if(this._gpuDevices == [])
-            console.warn("this._gpuDevices is not populated")
-        let gpuDeviceString = this._settings.get_string('gpu-device');
-        console.log("Looking for " + gpuDeviceString + " in " + this._gpuDevices);
-        let index = this._gpuDevices.findIndex(elem => elem == gpuDeviceString);
-        if(index === undefined) {
-            console.log("Could not find index")
-            return 0;
-        } else {
-            return index;
-        }
+        let deviceString = this._settings.get_string('gpu-device');
+        return Math.max(0, this._gpuDevices.findIndex(e => e == deviceString));
     }
 
     set gpuDevice(value) {
-        this._settings.set_string('gpu-device', this._gpuDevices[value]);
+        this._settings.set_string('gpu-device', this._gpuDevices[value] || '');
     }
 
     destroy() {

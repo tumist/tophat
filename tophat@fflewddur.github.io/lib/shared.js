@@ -233,8 +233,21 @@ export class AmdGpu extends GpuDevice {
         );
     }
     getMemUsage() {
+        let percentFile = new FileModule.File(this.sysfsPath + '/device/mem_busy_percent')
+        if (percentFile.exists()) {
+            return parseInt(percentFile.readSync());
+        } else {
+            return parseInt(this.getMemGttUsed() * 1.0 / this.getMemGttTotal());
+        }
+    }
+    getMemGttTotal() {
         return parseInt(
-            new FileModule.File(this.sysfsPath + '/device/mem_busy_percent').readSync()
+            new FileModule.File(this.sysfsPath + '/device/mem_info_gtt_total').readSync()
+        );
+    }
+    getMemGttUsed() {
+        return parseInt(
+            new FileModule.File(this.sysfsPath + '/device/mem_info_gtt_used').readSync()
         );
     }
     lookupName() {
@@ -269,7 +282,7 @@ export class AmdGpu extends GpuDevice {
 
 export const findGpuDevices = () => {
     return new Promise((resolve, reject) => {
-        let basePath = "/sys/class/drm/"
+        let basePath = "/sys/class/drm/";
         new FileModule.File(basePath).list()
             .then(content => {
                 var collection = new Map();
