@@ -21,6 +21,10 @@ import Gio from 'gi://Gio';
 import GTop from 'gi://GTop';
 import Clutter from 'gi://Clutter';
 
+import * as FileModule from './file.js';
+
+Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async');
+
 export const SECOND_AS_MICROSECONDS = 1000000;
 export const SECOND_AS_MILLISECONDS = 1000;
 
@@ -200,4 +204,87 @@ export function setSourceColor(ctx, color) {
         // Fall back to old ways
         Clutter.cairo_set_source_color(ctx, color);
     }
+}
+
+export class GpuDevice {
+    constructor(sysfsPath) {
+        this.sysfsPath = sysfsPath
+        this.name = null;
+    }
+    getUsage() { return null; }
+    getMemUsage() { return null; }
+    getTemperature() { return null; }
+    getName() { return this.name || this.sysfsPath; }
+    lookupName() {}
+    isOK() {
+        try {
+            return this.getUsage() !== null;
+        }
+        catch (e) {
+            return false;
+        }
+    }
+}
+
+export class AmdGpu extends GpuDevice {
+    getUsage() {
+        return parseInt(
+            new FileModule.File(this.sysfsPath + '/device/gpu_busy_percent').readSync()
+        );
+    }
+    getMemUsage() {
+        return parseInt(
+            new FileModule.File(this.sysfsPath + '/device/mem_busy_percent').readSync()
+        );
+    }
+    lookupName() {
+        return new Promise((resolve, reject) => {
+            try {
+                let vendor = new FileModule.File(this.sysfsPath + '/device/vendor').readSync()
+                let device = new FileModule.File(this.sysfsPath + '/device/device').readSync()
+
+                const proc = Gio.Subprocess.new(['lspci', '-v', '-mm', '-d', vendor + ":" + device],
+                    Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+                proc.communicate_utf8_async(null, null).then(lines => {
+                    if (proc.get_successful()) {
+                        for(let line of lines[0].split('\n')) {
+                            if(line.substring(0, 7) == "Device:") {
+                                this.name = line.substring(8)
+                                resolve(this.name)
+                            }
+                        }
+                    } else {
+                        reject("proc was not successful")
+                    }
+                    
+                }).catch(err => {
+                    reject("proc promise caught: " + err)
+                })
+            } catch(e) {
+                reject("lookupName threw exception: " + e)
+            }
+        });
+    }
+}
+
+export const findGpuDevices = () => {
+    return new Promise((resolve, reject) => {
+        let basePath = "/sys/class/drm/"
+        new FileModule.File(basePath).list()
+            .then(content => {
+                var collection = new Map();
+
+                for(let entry of content) {
+                    if(/^card[0-9]$/.test(entry)) {
+                        let sysfsPath = basePath + entry;
+                        let device = new AmdGpu(sysfsPath);
+                        if ( device.isOK() )
+                            collection.set(sysfsPath, device);
+                    }
+                }
+                resolve(collection);
+            }).catch(err => {
+                reject(err);
+            });
+    })
 }

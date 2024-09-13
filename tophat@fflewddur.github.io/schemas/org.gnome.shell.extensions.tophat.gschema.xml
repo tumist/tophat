@@ -88,6 +88,11 @@
       <summary>Show the GPU monitor</summary>
       <description>Show the GPU monitor.</description>
     </key>
+    <key name="gpu-device" type="s">
+      <default>''</default>
+      <summary>Sysfs path to amdgpu device</summary>
+      <description>Sysfs path to amdgpu device</description>
+    </key>
     <key name="show-animations" type="b">
       <default>true</default>
       <summary>Animate monitor changes</summary>

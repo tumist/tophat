@@ -103,7 +103,25 @@ export default class TopHatPrefs extends ExtensionPreferences {
 
         group = new Adw.PreferencesGroup({title: _('GPU')});
         this.addActionRow(_('Show the GPU monitor'), 'show-gpu', group, configHandler);
-        page.add(group);
+        Shared.findGpuDevices().then(devices => {
+            let keys = Array.from(devices.keys())
+            let gpus = Array.from(devices.values())
+            configHandler._gpuDevices = keys;
+            console.log(gpus)
+            Promise.all(gpus.map(dev => dev.lookupName()))
+            .then(names => { console.log("Found names: " + names) })
+            .finally(() => {
+                choices = new Gtk.StringList();
+                for(const [key, gpu] of devices) {
+                    choices.append(gpu.getName());
+                }
+                this.addComboRow("Gpu device", choices, 'gpuDevice', group, configHandler);
+                page.add(group);
+            })
+        }).catch(err => {
+            console.error("findGpuDevices error: " + err)
+            page.add(group);
+    })
 
         window.set_default_size(400, 0);
     }

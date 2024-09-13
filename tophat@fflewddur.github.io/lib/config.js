@@ -36,6 +36,7 @@ export class ConfigHandler {
         this.signal_ids = [];
         this._settings = settings;
         this._partitions = null;
+        this._gpuDevices = [];
         this.metadata = metadata;
     }
 
@@ -178,6 +179,24 @@ export class ConfigHandler {
 
     set diskMonitorMode(value) {
         this._settings.set_enum('disk-monitor-mode', value);
+    }
+
+    get gpuDevice() {
+        if(this._gpuDevices == [])
+            console.warn("this._gpuDevices is not populated")
+        let gpuDeviceString = this._settings.get_string('gpu-device');
+        console.log("Looking for " + gpuDeviceString + " in " + this._gpuDevices);
+        let index = this._gpuDevices.findIndex(elem => elem == gpuDeviceString);
+        if(index === undefined) {
+            console.log("Could not find index")
+            return 0;
+        } else {
+            return index;
+        }
+    }
+
+    set gpuDevice(value) {
+        this._settings.set_string('gpu-device', this._gpuDevices[value]);
     }
 
     destroy() {

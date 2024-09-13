@@ -26,12 +26,20 @@ import St from 'gi://St';
 import * as Config from './config.js';
 import * as Shared from './shared.js';
 import * as Monitor from './monitor.js';
-import * as FileModule from './file.js';
 
 import {gettext as _, ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-export const GpuMonitor = GObject.registerClass(
-    class GpuMonitor extends Monitor.TopHatMonitor {
+export const GpuMonitor = GObject.registerClass({
+    Properties: {
+        'gpu-device': GObject.ParamSpec.string(
+            'gpu-device',
+            'GPU device',
+            'Which GPU device to monitor',
+            GObject.ParamFlags.READWRITE,
+            ''
+        ),
+    },
+},  class GpuMonitor extends Monitor.TopHatMonitor {
         _init(configHandler) {
             super._init('Tophat GPU Monitor');
 
@@ -50,6 +58,9 @@ export const GpuMonitor = GObject.registerClass(
             configHandler.settings.bind('meter-fg-color', this, 'meter-fg-color', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('meter-bar-width', this, 'meter-bar-width', Gio.SettingsBindFlags.GET);
             configHandler.settings.bind('show-animations', this, 'show-animation', Gio.SettingsBindFlags.GET);
+            configHandler.settings.bind('gpu-device', this, 'gpu-device', Gio.SettingsBindFlags.GET);
+
+            this._setGpuDevice()
 
             this.history = new Array(0);
             this.refreshTimer = 0;
@@ -62,10 +73,29 @@ export const GpuMonitor = GObject.registerClass(
                 }
             });
             this._signals.push(id);
+            id = this.connect('notify::gpu-device', () => {
+                this._stopTimers();
+                this._setGpuDevice();
+                this._startTimers();
+            });
+            this._signals.push(id);
 
             this._buildMeter();
             this._buildMenu();
             this._startTimers();
+        }
+
+        _setGpuDevice() {
+            console.log("GPU monitor setting gpuDevice from key " + this.gpu_device);
+            Shared.findGpuDevices().then(devices => {
+                let device = devices.get(this.gpu_device)
+                if(device !== undefined) {
+                    this.gpuDevice = device;
+                    console.log("GPU monitor set to " + device)
+                } else {
+                    console.log("GPU monitor could not find device from key " + this.gpu-device);
+                }
+            })
         }
 
         _buildMeter() {
@@ -114,14 +144,10 @@ export const GpuMonitor = GObject.registerClass(
         }
 
         _refreshCharts() {
-            let currentGpuUsage = 0;
-            let currentGpuMemUsage = 0;
-            currentGpuUsage = parseInt(
-                new FileModule.File('/sys/class/drm/card1/device/gpu_busy_percent').readSync()
-            );
-            currentGpuMemUsage = parseInt(
-                new FileModule.File('/sys/class/drm/card1/device/mem_busy_percent').readSync()
-            );
+            if(this.gpuDevice == undefined || this.gpuDevice.getUsage == undefined)
+                return;
+            let currentGpuUsage = this.gpuDevice.getUsage();
+            let currentGpuMemUsage = this.gpuDevice.getMemUsage();
 
             this.meter.setUsage([currentGpuUsage, currentGpuMemUsage]);
             this.usage.text = `${currentGpuUsage}%`;
