@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with TopHat. If not, see <https://www.gnu.org/licenses/>.
 
+import Cogl from 'gi://Cogl';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -59,7 +60,7 @@ class ProcDiskActivity {
 
     hasRecentActivity() {
         return this.timePrev > 0 &&
-               ((this.write - this.writePrev) > 0 || (this.read - this.readPrev) > 0);
+            ((this.write - this.writePrev) > 0 || (this.read - this.readPrev) > 0);
     }
 
     recentActivity() {
@@ -496,9 +497,15 @@ export const FileSystemMonitor = GObject.registerClass({
         let xStart = (this.historyLimit - this.history.length) * pointSpacing;
         let ctx = this.historyChart.get_context();
         let fg, bg, gc;
-        [, fg] = Clutter.Color.from_string(this.meter_fg_color);
-        [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
-        [, gc] = Clutter.Color.from_string(Config.METER_GRID_COLOR);
+        if (typeof Cogl.Color.from_string === 'function') {
+            [, fg] = Cogl.Color.from_string(this.meter_fg_color);
+            [, bg] = Cogl.Color.from_string(Config.METER_BG_COLOR);
+            [, gc] = Cogl.Color.from_string(Config.METER_GRID_COLOR);
+        } else {
+            [, fg] = Clutter.Color.from_string(this.meter_fg_color);
+            [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
+            [, gc] = Clutter.Color.from_string(Config.METER_GRID_COLOR);
+        }
 
         // Use a small value to avoid max == 0
         let max = 0.001;

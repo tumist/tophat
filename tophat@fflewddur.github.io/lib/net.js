@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with TopHat. If not, see <https://www.gnu.org/licenses/>.
 
+import Cogl from 'gi://Cogl';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -157,6 +158,16 @@ export const NetMonitor = GObject.registerClass({
         this.menuNetDown = new St.Label({text: '', style_class: 'menu-value menu-section-end'});
         this.addMenuRow(this.menuNetDown, 1, 1, 1);
 
+        label = new St.Label({text: _('Total sent:'), style_class: 'menu-label'});
+        this.addMenuRow(label, 0, 1, 1);
+        this.menuTotalUp = new St.Label({text: '', style_class: 'menu-value'});
+        this.addMenuRow(this.menuTotalUp, 1, 1, 1);
+
+        label = new St.Label({text: _('Total received:'), style_class: 'menu-label'});
+        this.addMenuRow(label, 0, 1, 1);
+        this.menuTotalDown = new St.Label({text: '', style_class: 'menu-value menu-section-end'});
+        this.addMenuRow(this.menuTotalDown, 1, 1, 1);
+
         // Create a grid layout for the history chart
         let grid = new St.Widget({
             layout_manager: new Clutter.GridLayout({orientation: Clutter.Orientation.VERTICAL}),
@@ -219,6 +230,9 @@ export const NetMonitor = GObject.registerClass({
         this.valueNetUp.text = `${netOut}/s`;
         this.menuNetDown.text = `${netIn}/s`;
         this.menuNetUp.text = `${netOut}/s`;
+        // Update the total sent and received values.
+        this.menuTotalDown.text = `${Shared.bytesToHumanString(bytesIn, this.network_unit)}`;
+        this.menuTotalUp.text = `${Shared.bytesToHumanString(bytesOut, this.network_unit)}`;
         // console.debug(`[TopHat] Net: bytes_in=${(bytesInDelta / timeDelta).toFixed(2)}/s bytes_out=${(bytesOutDelta / timeDelta).toFixed(2)}/s time=${timeDelta}`);
 
         while (this.history.length >= this.historyLimit) {
@@ -238,10 +252,17 @@ export const NetMonitor = GObject.registerClass({
         let xStart = (this.historyLimit - this.history.length) * pointSpacing;
         let ctx = this.historyChart.get_context();
         let fgDown, fgUp, bg, gc;
-        [, fgDown] = Clutter.Color.from_string(this.meter_fg_color);
-        [, fgUp] = Clutter.Color.from_string(this.meter_fg_color);
-        [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
-        [, gc] = Clutter.Color.from_string(Config.METER_GRID_COLOR);
+        if (typeof Cogl.Color.from_string === 'function') {
+            [, fgDown] = Cogl.Color.from_string(this.meter_fg_color);
+            [, fgUp] = Cogl.Color.from_string(this.meter_fg_color);
+            [, bg] = Cogl.Color.from_string(Config.METER_BG_COLOR);
+            [, gc] = Cogl.Color.from_string(Config.METER_GRID_COLOR);
+        } else {
+            [, fgDown] = Clutter.Color.from_string(this.meter_fg_color);
+            [, fgUp] = Clutter.Color.from_string(this.meter_fg_color);
+            [, bg] = Clutter.Color.from_string(Config.METER_BG_COLOR);
+            [, gc] = Clutter.Color.from_string(Config.METER_GRID_COLOR);
+        }
 
         // Use a small value to avoid max == 0
         let max = 0.001;

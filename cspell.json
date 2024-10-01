@@ -5,6 +5,7 @@
         "Amereyeu",
         "bfree",
         "cahya",
+        "Cogl",
         "coretemp",
         "dontCreateMenu",
         "enecciara",
@@ -16,6 +17,7 @@
         "gicon",
         "glibtop",
         "gsettings",
+        "gtkclutter",
         "gtop",
         "guntur",
         "hbox",
@@ -45,6 +47,7 @@
         "rtime",
         "schemadir",
         "Sergey",
+        "Sonkusare",
         "swyknox",
         "sysinfo",
         "Tctl",
@@ -55,6 +58,7 @@
         "txelu",
         "typelib",
         "user",
+        "Vaibhav",
         "valign",
         "vbox",
         "vfunc",
@@ -66,7 +70,8 @@
         "Wunsz",
         "xalign",
         "xcpu",
-        "yakushabb"
+        "yakushabb",
+        "yuhldr"
     ],
     "enableFiletypes": [
         "!yaml"
